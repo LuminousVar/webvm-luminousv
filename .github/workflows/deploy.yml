@@ -39,6 +39,7 @@ jobs:
 
     permissions:
       actions: "write" # Required in order to terminate the workflow run.
+      contents: "read" # Required to read repository contents.
 
     steps:
       - uses: actions/checkout@v4
@@ -84,14 +85,6 @@ jobs:
             gh run cancel ${{ github.run_id }}
             gh run watch ${{ github.run_id }}
           fi
-
-      - name: Deploy to GitHub Pages
-        if: ${{ github.event.inputs.DEPLOY_TO_GITHUB_PAGES == 'true' && env.terminate != 'true' }}
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./
-          cname: webvm.luminousv.my.id
 
   build:
     needs: guard_clause # Dependency
@@ -199,6 +192,8 @@ jobs:
         run: |
           rm build/alpine.html
           sudo mv build/* $DEPLOY_DIR/
+          # Copy CNAME file for custom domain
+          sudo cp CNAME $DEPLOY_DIR/
 
       # We generate index.list files for our httpfs to function properly.
       - name: make index.list
